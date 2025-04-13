@@ -108,9 +108,9 @@ const questions = [
 ];
 
 let current = 0;
-let correctCountGlobal = 0;
+let score = 0;
 let timer;
-let timeLeft = 15;
+let timeLeft = 30;
 
 const questionText = document.getElementById("question-box");
 const answersContainer = document.getElementById("options-box");
@@ -119,9 +119,22 @@ const timerDisplay = document.getElementById("time");
 const sortableList = document.createElement("ul");
 sortableList.id = "sortable";
 
+document.getElementById("start-btn").addEventListener("click", () => {
+  document.getElementById("landing").style.display = "none";
+  document.getElementById("quiz-container").style.display = "block";
+  current = 0;
+  score = 0;
+  displayQuestion();
+});
+
+document.getElementById("restart-btn").addEventListener("click", () => {
+  document.getElementById("result-container").style.display = "none";
+  document.getElementById("landing").style.display = "block";
+});
+
 function displayQuestion() {
   clearInterval(timer);
-  timeLeft = 15;
+  timeLeft = 30;
   timerDisplay.textContent = timeLeft;
   timer = setInterval(() => {
     timeLeft--;
@@ -186,7 +199,7 @@ function displayQuestion() {
     const items = [...question.orderItems];
     items.sort(() => Math.random() - 0.5);
 
-    items.forEach((item, index) => {
+    items.forEach(item => {
       const li = document.createElement("li");
       li.dataset.originalIndex = question.orderItems.indexOf(item);
 
@@ -239,7 +252,6 @@ function dragEnd(e) {
 
 function getDragAfterElement(container, y) {
   const draggableElements = [...container.querySelectorAll("li:not(.dragging)")];
-
   return draggableElements.reduce((closest, child) => {
     const box = child.getBoundingClientRect();
     const offset = y - box.top - box.height / 2;
@@ -254,6 +266,7 @@ function getDragAfterElement(container, y) {
 function nextQuestion() {
   clearInterval(timer);
   const question = questions[current];
+  const questionScore = 100 / questions.length;
 
   if (question.type === "single" || question.type === "multiple") {
     const selected = document.querySelectorAll('input[name="answer"]:checked');
@@ -264,20 +277,19 @@ function nextQuestion() {
 
     if (question.type === "single") {
       const isCorrect = correctCount === 1 && selectedValues.length === 1;
-      if (isCorrect) correctCountGlobal++;
+      if (isCorrect) score += questionScore;
       alert(isCorrect ? "¡Correcto!" : "Incorrecto");
     } else {
-      const isFullyCorrect = correctCount === totalCorrect && selectedValues.length === totalCorrect;
-      if (isFullyCorrect) correctCountGlobal++;
+      const partialScore = (correctCount / totalCorrect) * questionScore;
+      score += partialScore;
       alert(`Respuestas correctas: ${correctCount}/${totalCorrect}`);
     }
 
   } else if (question.type === "ordenar") {
     const userOrder = Array.from(sortableList.children).map(li => parseInt(li.dataset.originalIndex));
-    const correctOrder = [...question.orderItems.keys()];
+    const correctOrder = [...questions[current].orderItems.keys()];
     const isCorrect = userOrder.every((val, idx) => val === correctOrder[idx]);
-
-    if (isCorrect) correctCountGlobal++;
+    if (isCorrect) score += questionScore;
     alert(isCorrect ? "¡Orden correcto!" : "Orden incorrecto");
   }
 
@@ -285,11 +297,15 @@ function nextQuestion() {
   if (current < questions.length) {
     displayQuestion();
   } else {
-    const finalScore = Math.round((correctCountGlobal / questions.length) * 100);
-    alert(`¡Terminaste! Puntaje final: ${finalScore}/100`);
-    nextBtn.disabled = true;
+    showResults();
   }
 }
 
+function showResults() {
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("result-container").style.display = "block";
+  const finalScore = Math.round(score);
+  document.getElementById("final-score").textContent = `Puntaje final: ${finalScore}/100`;
+}
+
 nextBtn.addEventListener("click", nextQuestion);
-displayQuestion();

@@ -47,7 +47,9 @@ h1 {
   background: #ddd;
 }
 
-#next-btn {
+#next-btn,
+#start-btn,
+#restart-btn {
   margin-top: 20px;
   padding: 10px 15px;
   background: #007bff;
@@ -57,7 +59,9 @@ h1 {
   cursor: pointer;
 }
 
-#next-btn:hover {
+#next-btn:hover,
+#start-btn:hover,
+#restart-btn:hover {
   background: #0056b3;
 }
 
